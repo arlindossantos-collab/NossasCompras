@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nossas Compras - Lista do Casal</title>
-  <!-- Tailwind CSS CDN para Interface Moderna -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome para Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,78 +19,100 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 flex justify-center p-3 sm:p-6">
+<body class="bg-slate-100 min-h-screen text-slate-800 flex justify-center items-center p-3 sm:p-6">
 
-  <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl flex flex-col justify-between overflow-hidden border border-slate-200">
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl flex flex-col justify-between overflow-hidden border border-slate-200 min-h-[500px]">
     
-    <!-- Cabeçalho -->
-    <div class="bg-indigo-600 p-6 text-white">
-      <div class="flex justify-between items-center mb-2">
-        <h1 class="text-2xl font-bold flex items-center gap-2">
-          <i class="fa-solid fa-basket-shopping"></i> Nossas Compras
-        </h1>
-        <button id="authBtn" onclick="toggleAuth()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-full transition">
-          Entrar com Google
-        </button>
+    <!-- 1. TELA DE LOGIN (Exibida por padrão quando NÃO autenticado) -->
+    <div id="loginScreen" class="flex-1 flex flex-col justify-center items-center p-8 text-center bg-white">
+      <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl mb-6 shadow-inner">
+        <i class="fa-solid fa-basket-shopping"></i>
       </div>
-      <p id="userInfo" class="text-xs text-indigo-200">Faça login para sincronizar com seu casal.</p>
-    </div>
-
-    <!-- Controle de Grupo -->
-    <div class="bg-indigo-50 p-4 border-b border-indigo-100 flex items-center justify-between gap-2">
-      <div class="flex-1">
-        <label class="text-xs font-semibold text-indigo-900 block mb-1">CÓDIGO DO GRUPO / CASAL</label>
-        <input type="text" id="groupId" value="casal-oficial" class="w-full text-sm font-mono px-3 py-1.5 rounded-lg border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Digite o ID do grupo">
-      </div>
-      <button onclick="conectarGrupo()" class="mt-4 bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-indigo-700">
-        Conectar
+      <h1 class="text-2xl font-bold text-slate-800 mb-2">Nossas Compras</h1>
+      <p class="text-sm text-slate-500 mb-8 max-w-xs">
+        Espaço colaborativo para organizar a lista de compras do casal em tempo real.
+      </p>
+      
+      <button onclick="loginGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-3">
+        <i class="fa-brands fa-google text-lg"></i>
+        Entrar com Conta Google
       </button>
+
+      <p id="loginStatus" class="text-xs text-slate-400 mt-6">Autenticação necessária para acessar.</p>
     </div>
 
-    <!-- Campo de Inserção e Comando de Voz -->
-    <div class="p-4 border-b border-slate-100 bg-slate-50">
-      <div class="flex gap-2 mb-2">
-        <input type="text" id="itemInput" placeholder="Ex: Sabão em pó, remédio..." class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-        <button onclick="adicionarItemManual()" class="bg-indigo-600 text-white px-4 py-3 rounded-xl hover:bg-indigo-700 font-semibold transition">
-          <i class="fa-solid fa-plus"></i>
+    <!-- 2. TELA PRINCIPAL / ÁREA DE TRABALHO (Oculta por padrão via CSS "hidden") -->
+    <div id="appScreen" class="hidden flex-1 flex flex-col justify-between">
+      
+      <!-- Cabeçalho com dados do usuário -->
+      <div class="bg-indigo-600 p-5 text-white flex justify-between items-center">
+        <div>
+          <h1 class="text-lg font-bold flex items-center gap-2">
+            <i class="fa-solid fa-basket-shopping"></i> Nossas Compras
+          </h1>
+          <p id="userInfo" class="text-xs text-indigo-200 truncate max-w-[200px]">Carregando usuário...</p>
+        </div>
+        <button onclick="logout()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-full transition flex items-center gap-1">
+          <i class="fa-solid fa-right-from-bracket"></i> Sair
         </button>
       </div>
 
-      <!-- Botão do Assistente por Voz -->
-      <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex items-center gap-3">
-          <button id="micBtn" onclick="toggleVoz()" class="w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition shadow">
-            <i class="fa-solid fa-microphone"></i>
+      <!-- Controle de Grupo/Casal -->
+      <div class="bg-indigo-50 p-4 border-b border-indigo-100 flex items-center justify-between gap-2">
+        <div class="flex-1">
+          <label class="text-xs font-semibold text-indigo-900 block mb-1">CÓDIGO DO GRUPO / CASAL</label>
+          <input type="text" id="groupId" value="casal-oficial" class="w-full text-sm font-mono px-3 py-1.5 rounded-lg border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ex: casal-123">
+        </div>
+        <button onclick="conectarGrupo()" class="mt-4 bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-indigo-700">
+          Conectar
+        </button>
+      </div>
+
+      <!-- Entrada de Itens e Voz -->
+      <div class="p-4 border-b border-slate-100 bg-slate-50">
+        <div class="flex gap-2 mb-2">
+          <input type="text" id="itemInput" placeholder="Ex: Sabão em pó, remédio..." class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" onkeypress="handleKeyPress(event)">
+          <button onclick="adicionarItemManual()" class="bg-indigo-600 text-white px-4 py-3 rounded-xl hover:bg-indigo-700 font-semibold transition">
+            <i class="fa-solid fa-plus"></i>
           </button>
-          <div>
-            <p class="text-xs font-bold text-slate-700">Assistente de Voz</p>
-            <p id="voiceStatus" class="text-[11px] text-slate-500">Diga: "Assistente, adicione [item]"</p>
+        </div>
+
+        <!-- Assistente por Voz -->
+        <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <button id="micBtn" onclick="toggleVoz()" class="w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition shadow">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+            <div>
+              <p class="text-xs font-bold text-slate-700">Assistente de Voz</p>
+              <p id="voiceStatus" class="text-[11px] text-slate-500">Diga: "Assistente, adicione [item]"</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Lista de Itens (Scroll) -->
-    <div class="flex-1 p-4 overflow-y-auto max-h-[400px]">
-      <ul id="listaCompras" class="space-y-2">
-        <li class="text-center py-8 text-slate-400 text-sm">Conecte-se para carregar a lista...</li>
-      </ul>
-    </div>
+      <!-- Lista de Itens -->
+      <div class="flex-1 p-4 overflow-y-auto max-h-[350px]">
+        <ul id="listaCompras" class="space-y-2">
+          <li class="text-center py-8 text-slate-400 text-sm">Carregando lista...</li>
+        </ul>
+      </div>
 
-    <!-- Rodapé informativo -->
-    <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
-      <p class="text-[11px] text-slate-400">NossasCompras • Projeto Firebase: nossascompras-f3b1c</p>
+      <!-- Rodapé -->
+      <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
+        <p class="text-[11px] text-slate-400">Área compartilhada • Sincronização em tempo real</p>
+      </div>
+
     </div>
 
   </div>
 
-  <!-- Módulos do Firebase (v10 SDK) -->
+  <!-- Módulos do Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Suas credenciais oficiais inseridas com sucesso
     const firebaseConfig = {
       apiKey: "AIzaSyBEVo6vuUVEMlaqijpP5AkKNZSnK7LXGmE",
       authDomain: "nossascompras-f3b1c.firebaseapp.com",
@@ -104,36 +126,55 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
     let usuarioAtual = null;
     let unsubscribeSnapshot = null;
 
-    // Autenticação com Google
-    window.toggleAuth = () => {
-      if (usuarioAtual) {
-        signOut(auth);
-      } else {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch(err => alert("Erro ao autenticar: " + err.message));
-      }
+    // Login com Conta do Google
+    window.loginGoogle = () => {
+      const provider = new GoogleAuthProvider();
+      const statusEl = document.getElementById("loginStatus");
+      statusEl.innerText = "Conectando à Conta Google...";
+
+      signInWithPopup(auth, provider).catch(err => {
+        alert("Erro ao autenticar: " + err.message);
+        statusEl.innerText = "Erro na autenticação. Tente novamente.";
+      });
     };
 
+    // Logout
+    window.logout = () => {
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+      signOut(auth);
+    };
+
+    // Monitor do estado da autenticação (Gatekeeper)
     onAuthStateChanged(auth, (user) => {
-      usuarioAtual = user;
-      const authBtn = document.getElementById("authBtn");
+      const loginScreen = document.getElementById("loginScreen");
+      const appScreen = document.getElementById("appScreen");
       const userInfo = document.getElementById("userInfo");
 
       if (user) {
-        authBtn.innerText = "Sair";
-        userInfo.innerText = `Logado como: ${user.displayName || user.email}`;
+        usuarioAtual = user;
+        userInfo.innerText = user.displayName || user.email;
+
+        // Oculta a tela de login e exibe o aplicativo
+        loginScreen.classList.add("hidden");
+        appScreen.classList.remove("hidden");
+
+        // Conecta ao grupo do casal
         conectarGrupo();
       } else {
-        authBtn.innerText = "Entrar com Google";
-        userInfo.innerText = "Faça login para sincronizar com seu casal.";
-        document.getElementById("listaCompras").innerHTML = `<li class="text-center py-8 text-slate-400 text-sm">Faça login com sua conta do Google.</li>`;
+        usuarioAtual = null;
+
+        // Exibe a tela de login e oculta o aplicativo
+        appScreen.classList.add("hidden");
+        loginScreen.classList.remove("hidden");
+        document.getElementById("loginStatus").innerText = "Autenticação necessária para acessar.";
       }
     });
 
-    // Sincronização em tempo real por grupo
+    // Conectar/Sincronizar com o Grupo no Firestore
     window.conectarGrupo = () => {
       const grupoId = document.getElementById("groupId").value.trim();
       if (!grupoId) return alert("Digite o código do grupo.");
@@ -149,6 +190,9 @@
           setDoc(groupRef, { itens: [] });
           renderizarLista([], grupoId);
         }
+      }, (error) => {
+        console.error("Erro ao ler grupo:", error);
+        alert("Erro de permissão no banco de dados. Verifique as regras no Firebase.");
       });
     };
 
@@ -157,7 +201,7 @@
       listaEl.innerHTML = "";
 
       if (itens.length === 0) {
-        listaEl.innerHTML = `<li class="text-center py-8 text-slate-400 text-sm">A lista está vazia! Adicione itens acima ou use a voz.</li>`;
+        listaEl.innerHTML = `<li class="text-center py-8 text-slate-400 text-sm">A lista está vazia! Adicione itens acima ou use o microfone.</li>`;
         return;
       }
 
@@ -185,11 +229,11 @@
 
       try {
         await updateDoc(groupRef, {
-          itens: arrayUnion({ nome: nomeItem, comprado: false, criadoEm: new Date().toISOString() })
+          itens: arrayUnion({ nome: nomeItem, comprado: false, criadoEm: new Date().toISOString(), adicionadoPor: usuarioAtual.email })
         });
       } catch (err) {
         await setDoc(groupRef, {
-          itens: [{ nome: nomeItem, comprado: false, criadoEm: new Date().toISOString() }]
+          itens: [{ nome: nomeItem, comprado: false, criadoEm: new Date().toISOString(), adicionadoPor: usuarioAtual.email }]
         }, { merge: true });
       }
     };
@@ -198,6 +242,10 @@
       const input = document.getElementById("itemInput");
       adicionarItemBD(input.value.trim());
       input.value = "";
+    };
+
+    window.handleKeyPress = (e) => {
+      if (e.key === "Enter") adicionarItemManual();
     };
 
     window.toggleItemComprado = async (grupoId, index) => {
@@ -226,7 +274,7 @@
       }, { oneshot: true });
     };
 
-    // Reconhecimento de voz (Web Speech API)
+    // Comando de Voz (Web Speech API)
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     let gravando = false;
@@ -251,7 +299,6 @@
 
       recognition.onresult = (event) => {
         const textoFalar = event.results[0][0].transcript.toLowerCase();
-
         let itemExtraido = "";
 
         if (textoFalar.includes("adicione") || textoFalar.includes("adicionar")) {
