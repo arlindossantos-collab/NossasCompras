@@ -1,31 +1,28 @@
 <!-- 
   =============================================================================
   APLICAÇÃO: Nossas Compras
-  VERSÃO: 2.4.0
+  VERSÃO: 2.4.1
   DATA DA ATUALIZAÇÃO: 30/09/2026
   
-  HISTÓRICO DE ALTERAÇÕES DA VERSÃO 2.4.0:
-  - Implementação do módulo "Feira do Mês" como aba dedicada no aplicativo.
-  - Inclusão dos campos "Onde" (Redes: Assaí, Atacadão, Sams, Carrefour, Recibom,
-    Atacarejo, Rende Mais, Ceasa, Verd Frut, Quitanda, Outros) e "Bairro".
-  - Sincronização em tempo real da Feira do Mês na subcoleção 'itensFeira' no Firestore.
-  - Filtro por mercado e bairro na visualização da Feira do Mês.
-  - Manutenção integral de todos os módulos existentes (Lista, Histórico, 
-    Dashboard, Favoritos, Agenda, Mercado, Casa e Assistente de Voz).
+  HISTÓRICO DE ALTERAÇÕES DA VERSÃO 2.4.1:
+  - Correção do fluxo de autenticação com o Google Sign-In via addEventListener.
+  - Blindagem na inicialização dos eventos da tela de login.
+  - Manutenção integral da Feira do Mês (Assaí, Atacadão, Sams, Carrefour, etc. + Bairro).
+  - Preservação de todos os demais módulos (Lista, Histórico, Dashboard, Favoritos, Agenda, Mercado e Casa).
   =============================================================================
 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="application-version" content="2.4.0"><title>Nossas Compras 2.4.0</title>
+<meta name="application-version" content="2.4.1"><title>Nossas Compras 2.4.1</title>
 <script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}.hidden{display:none!important}
 </style></head>
 <body class="bg-slate-100 text-slate-800 min-h-screen"><div class="max-w-3xl mx-auto p-3 sm:p-6"><main class="bg-white rounded-3xl shadow-xl overflow-hidden min-h-[720px]">
-<section id="loginScreen" class="p-10 text-center"><div class="text-5xl text-indigo-600 mb-5">🛒</div><h1 class="text-3xl font-bold">Nossas Compras</h1><p class="text-slate-500 mt-2">Lista inteligente, colaborativa e familiar.</p><button id="btnLogin" class="mt-8 w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold"><i class="fa-brands fa-google mr-2"></i>Entrar com Google</button><p id="loginStatus" class="text-xs text-slate-400 mt-5">Autenticação necessária.</p><p class="mt-8 text-xs text-slate-400">Versão <span class="appVersion"></span></p></section>
-<section id="appScreen" class="hidden"><header class="bg-indigo-600 text-white p-5 flex justify-between items-center"><div><h1 class="font-bold text-xl">🛒 Nossas Compras</h1><p id="userInfo" class="text-xs text-indigo-200"></p></div><button id="btnLogout" class="bg-indigo-700 px-3 py-2 rounded-lg text-sm">Sair</button></header>
+<section id="loginScreen" class="p-10 text-center"><div class="text-5xl text-indigo-600 mb-5">🛒</div><h1 class="text-3xl font-bold">Nossas Compras</h1><p class="text-slate-500 mt-2">Lista inteligente, colaborativa e familiar.</p><button id="btnLogin" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 transition text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"><i class="fa-brands fa-google text-lg"></i>Entrar com Google</button><p id="loginStatus" class="text-xs text-slate-400 mt-5">Autenticação necessária.</p><p class="mt-8 text-xs text-slate-400">Versão <span class="appVersion"></span></p></section>
+<section id="appScreen" class="hidden"><header class="bg-indigo-600 text-white p-5 flex justify-between items-center"><div><h1 class="font-bold text-xl">🛒 Nossas Compras</h1><p id="userInfo" class="text-xs text-indigo-200"></p></div><button id="btnLogout" class="bg-indigo-700 hover:bg-indigo-800 px-3 py-2 rounded-lg text-sm transition">Sair</button></header>
 <div class="p-4 bg-indigo-50 border-b"><div class="flex gap-2"><input id="groupId" class="flex-1 border rounded-lg p-2" value="casal-oficial" placeholder="Código da casa/grupo"><button id="btnConectar" class="bg-indigo-600 text-white px-4 rounded-lg">Conectar</button></div><div class="flex gap-2 mt-2"><button id="btnCreateInvite" class="text-xs bg-white border px-3 py-2 rounded-lg">🔗 Gerar convite</button><button id="btnJoinInvite" class="text-xs bg-white border px-3 py-2 rounded-lg">👥 Entrar por convite</button></div><p id="groupStatus" class="text-xs text-indigo-700 mt-2"></p></div>
 <nav class="flex border-b overflow-x-auto text-sm"><button class="tab px-4 py-3 font-semibold border-b-2 border-indigo-600" data-tab="lista">🛒 Lista</button><button class="tab px-4 py-3" data-tab="feira">🗓️ Feira do Mês</button><button class="tab px-4 py-3" data-tab="historico">🧾 Histórico</button><button class="tab px-4 py-3" data-tab="dashboard">📊 Gastos</button><button class="tab px-4 py-3" data-tab="favoritos">⭐ Favoritos</button><button class="tab px-4 py-3" data-tab="calendario">🗓️ Agenda</button><button class="tab px-4 py-3" data-tab="mercado">🏪 Mercado</button><button class="tab px-4 py-3" data-tab="config">⚙️ Casa</button></nav>
 
@@ -36,7 +33,7 @@
 <!-- TAB: FEIRA DO MÊS -->
 <section id="tab-feira" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-3">🗓️ Feira do Mês</h2><p class="text-xs text-slate-500 mb-4">Planejamento e controle para as compras mensais do casal por mercado e localização.</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 mb-4"><input id="feiraItemInput" class="border rounded-xl p-3 sm:col-span-2" placeholder="Produto para o mês (ex.: Arroz 5kg, Azeite)"><input id="feiraQtyInput" type="number" min="1" value="1" class="border rounded-xl p-3" placeholder="Qtd"><select id="feiraUnitInput" class="border rounded-xl p-3"><option>un</option><option>kg</option><option>g</option><option>l</option><option>ml</option><option>pacote</option><option>caixa</option><option>lata</option></select><select id="feiraStoreSelect" class="border rounded-xl p-3"><option value="">🏪 Onde (Rede de Mercado)</option><option value="Assaí">Assaí</option><option value="Atacadão">Atacadão</option><option value="Sams">Sams</option><option value="Carrefour">Carrefour</option><option value="Recibom">Recibom</option><option value="Atacarejo">Atacarejo</option><option value="Rende Mais">Rende Mais</option><option value="Ceasa">Ceasa</option><option value="Verd Frut">Verd Frut</option><option value="Quitanda">Quitanda</option><option value="Outros">Outros</option></select><input id="feiraBairroInput" class="border rounded-xl p-3" placeholder="📍 Bairro do mercado"><button id="btnAddFeiraItem" class="sm:col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-3 font-bold transition">Adicionar à Feira do Mês</button></div><div class="flex gap-2 mb-3"><select id="feiraStoreFilter" class="flex-1 border rounded-xl p-2 text-sm"><option value="all">Todas as redes</option><option value="Assaí">Assaí</option><option value="Atacadão">Atacadão</option><option value="Sams">Sams</option><option value="Carrefour">Carrefour</option><option value="Recibom">Recibom</option><option value="Atacarejo">Atacarejo</option><option value="Rende Mais">Rende Mais</option><option value="Ceasa">Ceasa</option><option value="Verd Frut">Verd Frut</option><option value="Quitanda">Quitanda</option><option value="Outros">Outros</option></select><input id="feiraSearchInput" class="flex-1 border rounded-xl p-2 text-sm" placeholder="🔎 Filtrar feira..."></div><div id="feiraSummary" class="text-xs text-slate-500 mb-3"></div><ul id="feiraList" class="space-y-2"></ul></section>
 
-<!-- OUTRAS TABS PERMANECEM INTACTAS -->
+<!-- OUTRAS TABS -->
 <section id="tab-historico" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-3">Histórico de compras</h2><button id="btnArchive" class="mb-4 bg-emerald-600 text-white px-4 py-2 rounded-xl">Finalizar e arquivar compra</button><ul id="historico" class="space-y-2"></ul></section>
 <section id="tab-dashboard" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-4">Dashboard</h2><div class="grid grid-cols-1 sm:grid-cols-3 gap-3"><div class="border rounded-xl p-4"><p class="text-xs text-slate-500">Gasto registrado</p><b id="totalSpent" class="text-xl">R$ 0,00</b></div><div class="border rounded-xl p-4"><p class="text-xs text-slate-500">Orçamento mensal</p><b id="budgetView">R$ 0,00</b></div><div class="border rounded-xl p-4"><p class="text-xs text-slate-500">Saldo</p><b id="balanceView">R$ 0,00</b></div></div><div class="mt-4 border rounded-xl p-4"><b>Itens por categoria</b><div id="categoryStats" class="text-sm mt-3 space-y-1"></div></div></section>
 <section id="tab-favoritos" class="tabPanel hidden p-4"><div class="flex justify-between items-center"><h2 class="font-bold text-lg">⭐ Favoritos</h2><button id="btnAddFavorite" class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm">Novo favorito</button></div><ul id="favoritesList" class="space-y-2 mt-4"></ul></section>
@@ -54,7 +51,7 @@ import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-app
 import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import{getFirestore,doc,collection,addDoc,deleteDoc,updateDoc,setDoc,onSnapshot,query,orderBy,serverTimestamp,writeBatch,getDoc,arrayUnion}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const APP_VERSION='2.4.0';
+const APP_VERSION='2.4.1';
 document.querySelectorAll('.appVersion').forEach(e=>e.textContent=APP_VERSION);
 
 const firebaseConfig={apiKey:"AIzaSyBEVo6vuUVEMlaqijpP5AkKNZSnK7LXGmE",authDomain:"nossascompras-f3b1c.firebaseapp.com",projectId:"nossascompras-f3b1c",storageBucket:"nossascompras-f3b1c.firebasestorage.app",messagingSenderId:"694961166218",appId:"1:694961166218:web:a846b1a9b5e81b5d001a73",measurementId:"G-1YL3PYB24T"};
@@ -69,6 +66,7 @@ const col=n=>collection(db,'grupos_compras',gid(),n);
 
 function firebaseMessage(err){
   const code=err?.code||'';
+  if(code==='auth/unauthorized-domain') return 'Domínio não autorizado no Firebase Auth. Verifique o console.';
   if(code==='permission-denied') return 'Permissão negada pelo Firestore. Verifique as regras do seu projeto.';
   if(code==='unauthenticated') return 'Sua sessão expirou. Entre novamente com sua conta Google.';
   if(code==='unavailable') return 'O Firebase está indisponível ou sem conexão com a internet.';
@@ -77,9 +75,32 @@ function firebaseMessage(err){
 
 function showFirebaseError(err){console.error('Firebase:',err);$('groupStatus').textContent='⚠️ '+firebaseMessage(err);}
 
-$('btnLogin').onclick=async()=>{try{$('loginStatus').textContent='Conectando...';await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){$('loginStatus').textContent='Erro: '+firebaseMessage(e)}};$('btnLogout').onclick=()=>signOut(auth);
+// CORREÇÃO CRÍTICA NA AUTENTICAÇÃO
+document.getElementById('btnLogin').addEventListener('click', async () => {
+  const statusEl = document.getElementById('loginStatus');
+  statusEl.textContent = 'Conectando ao Google...';
+  try {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    console.error('Erro na autenticação:', e);
+    statusEl.textContent = 'Erro ao autenticar: ' + firebaseMessage(e);
+  }
+});
 
-onAuthStateChanged(auth,u=>{user=u;if(u){$('userInfo').textContent=u.displayName||u.email;$('loginScreen').classList.add('hidden');$('appScreen').classList.remove('hidden');connect().catch(showFirebaseError)}else{$('appScreen').classList.add('hidden');$('loginScreen').classList.remove('hidden')}});
+document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
+
+onAuthStateChanged(auth, u => {
+  user = u;
+  if (u) {
+    $('userInfo').textContent = u.displayName || u.email;
+    $('loginScreen').classList.add('hidden');$('appScreen').classList.remove('hidden');
+    connect().catch(showFirebaseError);
+  } else {
+    $('appScreen').classList.add('hidden');$('loginScreen').classList.remove('hidden');
+    document.getElementById('loginStatus').textContent = 'Autenticação necessária.';
+  }
+});
 
 $('btnConectar').onclick=()=>connect().catch(showFirebaseError);
 
