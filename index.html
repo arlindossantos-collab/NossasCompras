@@ -1,21 +1,21 @@
 <!-- 
   =============================================================================
   APLICAÇÃO: Nossas Compras
-  VERSÃO: 2.5.1
+  VERSÃO: 2.5.2
   DATA DA ATUALIZAÇÃO: 30/09/2026
   
-  HISTÓRICO DE ALTERAÇÕES DA VERSÃO 2.5.1:
-  - Correção de erro na vinculação dos eventos do módulo "Feira do Mês" (evita quebra do JS na inicialização).
-  - Preservação exata do fluxo e script de autenticação do Google da versão estável 2.3.0.
-  - Exibição garantida do número da versão e liberação imediata do botão "Entrar com Google".
-  - Manutenção do módulo "Feira do Mês" com rede de mercado ("Onde") e "Bairro".
+  HISTÓRICO DE ALTERAÇÕES DA VERSÃO 2.5.2:
+  - Correção profunda do erro de inicialização que impedia o carregamento do script.
+  - Restauração do fluxo exato de login via Popup com Google Auth da versão estável 2.3.0.
+  - Adição do módulo "Feira do Mês" com seletores protegidos contra exceções nulas.
+  - Garantia de exibição da versão e pleno funcionamento dos botões na tela inicial.
   =============================================================================
 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="application-version" content="2.5.1"><title>Nossas Compras 2.5.1</title>
+<meta name="application-version" content="2.5.2"><title>Nossas Compras 2.5.2</title>
 <script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}.hidden{display:none!important}
@@ -33,7 +33,7 @@
 <!-- TAB: FEIRA DO MÊS -->
 <section id="tab-feira" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-3">🗓️ Feira do Mês</h2><p class="text-xs text-slate-500 mb-4">Planejamento e controle para as compras mensais do casal por mercado e localização.</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 mb-4"><input id="feiraItemInput" class="border rounded-xl p-3 sm:col-span-2" placeholder="Produto para o mês (ex.: Arroz 5kg, Azeite)"><input id="feiraQtyInput" type="number" min="1" value="1" class="border rounded-xl p-3" placeholder="Qtd"><select id="feiraUnitInput" class="border rounded-xl p-3"><option>un</option><option>kg</option><option>g</option><option>l</option><option>ml</option><option>pacote</option><option>caixa</option><option>lata</option></select><select id="feiraStoreSelect" class="border rounded-xl p-3"><option value="">🏪 Onde (Rede de Mercado)</option><option value="Assaí">Assaí</option><option value="Atacadão">Atacadão</option><option value="Sams">Sams</option><option value="Carrefour">Carrefour</option><option value="Recibom">Recibom</option><option value="Atacarejo">Atacarejo</option><option value="Rende Mais">Rende Mais</option><option value="Ceasa">Ceasa</option><option value="Verd Frut">Verd Frut</option><option value="Quitanda">Quitanda</option><option value="Outros">Outros</option></select><input id="feiraBairroInput" class="border rounded-xl p-3" placeholder="📍 Bairro do mercado"><button id="btnAddFeiraItem" class="sm:col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-3 font-bold transition">Adicionar à Feira do Mês</button></div><div class="flex gap-2 mb-3"><select id="feiraStoreFilter" class="flex-1 border rounded-xl p-2 text-sm"><option value="all">Todas as redes</option><option value="Assaí">Assaí</option><option value="Atacadão">Atacadão</option><option value="Sams">Sams</option><option value="Carrefour">Carrefour</option><option value="Recibom">Recibom</option><option value="Atacarejo">Atacarejo</option><option value="Rende Mais">Rende Mais</option><option value="Ceasa">Ceasa</option><option value="Verd Frut">Verd Frut</option><option value="Quitanda">Quitanda</option><option value="Outros">Outros</option></select><input id="feiraSearchInput" class="flex-1 border rounded-xl p-2 text-sm" placeholder="🔎 Filtrar feira..."></div><div id="feiraSummary" class="text-xs text-slate-500 mb-3"></div><ul id="feiraList" class="space-y-2"></ul></section>
 
-<!-- DEMAIS TABS -->
+<!-- OUTRAS TABS -->
 <section id="tab-historico" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-3">Histórico de compras</h2><button id="btnArchive" class="mb-4 bg-emerald-600 text-white px-4 py-2 rounded-xl">Finalizar e arquivar compra</button><ul id="historico" class="space-y-2"></ul></section>
 <section id="tab-dashboard" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-4">Dashboard</h2><div class="grid grid-cols-1 sm:grid-cols-3 gap-3"><div class="border rounded-xl p-4"><p class="text-xs text-slate-500">Gasto registrado</p><b id="totalSpent" class="text-xl">R$ 0,00</b></div><div class="border rounded-xl p-4"><p class="text-xs text-slate-500">Orçamento mensal</p><b id="budgetView">R$ 0,00</b></div><div class="border rounded-xl p-4"><p class="text-xs text-slate-500">Saldo</p><b id="balanceView">R$ 0,00</b></div></div><div class="mt-4 border rounded-xl p-4"><b>Itens por categoria</b><div id="categoryStats" class="text-sm mt-3 space-y-1"></div></div></section>
 <section id="tab-favoritos" class="tabPanel hidden p-4"><div class="flex justify-between items-center"><h2 class="font-bold text-lg">⭐ Favoritos</h2><button id="btnAddFavorite" class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm">Novo favorito</button></div><ul id="favoritesList" class="space-y-2 mt-4"></ul></section>
@@ -41,23 +41,65 @@
 <section id="tab-mercado" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-3">🏪 Modo supermercado</h2><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3"><select id="marketStoreFilter" class="border rounded-xl p-3"><option value="all">Todas as lojas</option><option>Supermercado</option><option>Farmácia</option><option>Pet Shop</option><option>Feira</option><option>Loja online</option><option>Outro</option></select><select id="marketAssigneeFilter" class="border rounded-xl p-3"><option value="all">Todos os responsáveis</option></select></div><div id="marketSummary" class="text-sm text-slate-500 mb-3"></div><ul id="marketList" class="space-y-2"></ul></section>
 <section id="tab-config" class="tabPanel hidden p-4"><h2 class="font-bold text-lg mb-4">Configurações da casa</h2><label class="block text-sm font-semibold">Orçamento mensal (R$)</label><div class="flex gap-2 mt-2"><input id="budgetInput" type="number" min="0" step="0.01" class="border rounded-xl p-3 flex-1" placeholder="1500"><button id="btnSaveBudget" class="bg-indigo-600 text-white px-4 rounded-xl">Salvar</button></div><label class="block text-sm font-semibold mt-5">Itens recorrentes</label><p class="text-xs text-slate-500 mb-2">Defina a frequência em dias nos itens abaixo.</p><ul id="recurringList" class="space-y-2"></ul><button id="btnCheckRecurring" class="mt-4 border px-4 py-2 rounded-xl">🔄 Verificar reposições</button><div id="recurringSuggestions" class="mt-3 text-sm"></div><div class="mt-6 border rounded-xl p-4"><b>Membros</b><div id="membersList" class="text-sm mt-2"></div></div></section>
 
-<div id="editModal" class="modal-backdrop hidden"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center"><h3 class="text-lg font-bold">✏️ Editar item</h3><button id="btnCloseEdit" class="text-slate-500 text-xl">×</button></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4"><div class="sm:col-span-2"><label class="text-xs text-slate-500">Produto</label><input id="editName" class="w-full border rounded-xl p-3"></div><div><label class="text-xs text-slate-500">Quantidade</label><input id="editQty" type="number" min="1" class="w-full border rounded-xl p-3"></div><div><label class="text-xs text-slate-500">Unidade</label><select id="editUnit" class="w-full border rounded-xl p-3"><option>un</option><option>kg</option><option>g</option><option>l</option><option>ml</option><option>pacote</option><option>caixa</option><option>lata</option></select></div><div><label class="text-xs text-slate-500">Categoria</label><select id="editCategory" class="w-full border rounded-xl p-3"><option>Outros</option><option>Alimentação</option><option>Laticínios</option><option>Hortifruti</option><option>Limpeza</option><option>Higiene</option><option>Pets</option><option>Farmácia</option><option>Padaria</option></select></div><div><label class="text-xs text-slate-500">Prioridade</label><select id="editPriority" class="w-full border rounded-xl p-3"><option value="normal">Normal</option><option value="alta">Alta</option><option value="baixa">Baixa</option></select></div><div class="sm:col-span-2"><label class="text-xs text-slate-500">Quando comprar?</label><select id="editPurchasePeriod" class="w-full border rounded-xl p-3"><option value="imediata">⚡ Compra imediata</option><option value="proximo">📅 Próximo período</option><option value="especifico">🎯 Período específico</option></select></div><div id="editSpecificWrap" class="sm:col-span-2"><label class="text-xs text-slate-500">Período específico</label><input id="editSpecificPeriod" class="w-full border rounded-xl p-3" placeholder="Ex.: Black Friday, Natal"></div><div><label class="text-xs text-slate-500">Data desejada</label><input id="editDueDate" type="date" class="w-full border rounded-xl p-3"></div><div><label class="text-xs text-slate-500">Loja</label><select id="editStore" class="w-full border rounded-xl p-3"><option value="">Não definida</option><option>Supermercado</option><option>Farmácia</option><option>Pet Shop</option><option>Feira</option><option>Loja online</option><option>Outro</option></select></div><div><label class="text-xs text-slate-500">Responsável</label><input id="editAssignee" class="w-full border rounded-xl p-3" placeholder="Quem vai comprar?"></div><div><label class="text-xs text-slate-500">Preço unitário (R$)</label><input id="editPrice" type="number" min="0" step="0.01" class="w-full border rounded-xl p-3"></div><div class="sm:col-span-2"><label class="text-xs text-slate-500">Observações</label><textarea id="editNotes" class="w-full border rounded-xl p-3" rows="3" placeholder="Marca, tamanho, preferência..."></textarea></div></div><div class="flex gap-2 mt-5"><button id="btnCancelEdit" class="flex-1 border rounded-xl p-3">Cancelar</button><button id="btnSaveEdit" class="flex-1 bg-indigo-600 text-white rounded-xl p-3 font-semibold">Salvar alterações</button></div></div></div><footer class="p-3 text-center text-xs text-slate-400 border-t">Nossas Compras • Versão <span class="appVersion"></span> • Firebase</footer></section></main></div>
+<div id="editModal" class="modal-backdrop hidden"><div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center"><h3 class="text-lg font-bold">✏️ Editar item</h3><button id="btnCloseEdit" class="text-slate-500 text-xl">×</button></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4"><div class="sm:col-span-2"><label class="text-xs text-slate-500">Produto</label><input id="editName" class="w-full border rounded-xl p-3"></div><div><label class="text-xs text-slate-500">Quantidade</label><input id="editQty" type="number" min="1" class="w-full border rounded-xl p-3"></div><div><label class="text-xs text-slate-500">Unidade</label><select id="editUnit" class="w-full border rounded-xl p-3"><option>un</option><option>kg</option><option>g</option><option>l</option><option>ml</option><option>pacote</option><option>caixa</option><option>lata</option></select></div><div><label class="text-xs text-slate-500">Categoria</label><select id="editCategory" class="w-full border rounded-xl p-3"><option>Outros</option><option>Alimentação</option><option>Laticínios</option><option>Hortifruti</option><option>Limpeza</option><option>Higiene</option><option>Pets</option><option>Farmácia</option><option>Padaria</option></select></div><div><label class="text-xs text-slate-500">Prioridade</label><select id="editPriority" class="w-full border rounded-xl p-3"><option value="normal">Normal</option><option value="alta">Alta</option><option value="baixa">Baixa</option></select></div><div class="sm:col-span-2"><label class="text-xs text-slate-500">Quando comprar?</label><select id="editPurchasePeriod" class="w-full border rounded-xl p-3"><option value="imediata">⚡ Compra imediata</option><option value="proximo">📅 Próximo período</option><option value="especifico">🎯 Período específico</option></select></div><div id="editSpecificWrap" class="sm:col-span-2"><label class="text-xs text-slate-500">Período específico</label><input id="editSpecificPeriod" class="w-full border rounded-xl p-3" placeholder="Ex.: Black Friday, Natal"></div><div><label class="text-xs text-slate-500">Data desejada</label><input id="editDueDate" type="date" class="w-full border rounded-xl p-3"></div><div><label class="text-xs text-slate-500">Loja</label><select id="editStore" class="w-full border rounded-xl p-3"><option value="">Não definida</option><option>Supermercado</option><option>Farmácia</option><option>Pet Shop</option><option>Feira</option><option>Loja online</option><option>Outro</option></select></div><div><label class="text-xs text-slate-500">Responsável</label><input id="editAssignee" class="w-full border rounded-xl p-3" placeholder="Quem vai comprar?"></div><div><label class="text-xs text-slate-500">Preço unitário (R$)</label><input id="editPrice" type="number" min="0" step="0.01" class="w-full border rounded-xl p-3"></div><div class="sm:col-span-2"><label class="text-xs text-slate-500">Observações</label><textarea id="editNotes" class="w-full border rounded-xl p-3" rows="3" placeholder="Marca, tamanho, preferência..."></textarea></div></div><div class="flex gap-2 mt-5"><button id="btnCancelEdit" class="flex-1 border rounded-xl p-3">Cancelar</button><button id="btnSaveEdit" class="flex-1 bg-indigo-600 text-white rounded-xl p-3 font-semibold">Salvar alterações</button></div></div></div>
+
+<footer class="p-3 text-center text-xs text-slate-400 border-t">Nossas Compras • Versão <span class="appVersion"></span> • Firebase</footer></section></main></div>
+
 <script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";import{getFirestore,doc,collection,addDoc,deleteDoc,updateDoc,setDoc,onSnapshot,query,orderBy,serverTimestamp,writeBatch,getDoc,arrayUnion}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-const APP_VERSION='2.5.1';document.querySelectorAll('.appVersion').forEach(e=>e.textContent=APP_VERSION);
-const firebaseConfig={apiKey:"AIzaSyBEVo6vuUVEMlaqijpP5AkKNZSnK7LXGmE",authDomain:"nossascompras-f3b1c.firebaseapp.com",projectId:"nossascompras-f3b1c",storageBucket:"nossascompras-f3b1c.firebasestorage.app",messagingSenderId:"694961166218",appId:"1:694961166218:web:a846b1a9b5e81b5d001a73",measurementId:"G-1YL3PYB24T"};const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);const $=id=>document.getElementById(id);let user,items=[],feiraItems=[],history=[],favorites=[],config={},unsubs=[],currentFilter='all';const gid=()=>$('groupId').value.trim();const gdoc=()=>doc(db,'grupos_compras',gid());const col=n=>collection(db,'grupos_compras',gid(),n);
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import{getFirestore,doc,collection,addDoc,deleteDoc,updateDoc,setDoc,onSnapshot,query,orderBy,serverTimestamp,writeBatch,getDoc,arrayUnion}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const APP_VERSION='2.5.2';
+document.querySelectorAll('.appVersion').forEach(e=>e.textContent=APP_VERSION);
+
+const firebaseConfig={apiKey:"AIzaSyBEVo6vuUVEMlaqijpP5AkKNZSnK7LXGmE",authDomain:"nossascompras-f3b1c.firebaseapp.com",projectId:"nossascompras-f3b1c",storageBucket:"nossascompras-f3b1c.firebasestorage.app",messagingSenderId:"694961166218",appId:"1:694961166218:web:a846b1a9b5e81b5d001a73",measurementId:"G-1YL3PYB24T"};
+
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+let user,items=[],feiraItems=[],history=[],favorites=[],config={},unsubs=[],currentFilter='all';
+
+const gid=()=>$('groupId').value.trim();
+const gdoc=()=>doc(db,'grupos_compras',gid());
+const col=n=>collection(db,'grupos_compras',gid(),n);
+
 function firebaseMessage(err){
   const code=err?.code||'';
-  if(code==='permission-denied') return 'Permissão negada pelo Firestore. Publique as regras da versão 2.3.0 para permitir acesso às subcoleções do grupo.';
+  if(code==='permission-denied') return 'Permissão negada pelo Firestore. Publique as regras para permitir acesso às subcoleções.';
   if(code==='unauthenticated') return 'Sua sessão expirou. Entre novamente com sua conta Google.';
   if(code==='unavailable') return 'O Firebase está indisponível ou sem conexão com a internet.';
   return 'Erro no Firebase: '+(err?.message||'desconhecido');
 }
+
 function showFirebaseError(err){console.error('Firebase:',err);if($('groupStatus'))$('groupStatus').textContent='⚠️ '+firebaseMessage(err);}
 
-// LÓGICA DE LOGIN INTACTA DA VERSÃO ESTÁVEL
-$('btnLogin').onclick=async()=>{try{$('loginStatus').textContent='Conectando...';await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){$('loginStatus').textContent='Erro: '+firebaseMessage(e)}};$('btnLogout').onclick=()=>signOut(auth);
-onAuthStateChanged(auth,u=>{user=u;if(u){$('userInfo').textContent=u.displayName||u.email;$('loginScreen').classList.add('hidden');$('appScreen').classList.remove('hidden');connect().catch(showFirebaseError)}else{$('appScreen').classList.add('hidden');$('loginScreen').classList.remove('hidden')}});$('btnConectar').onclick=()=>connect().catch(showFirebaseError);
+// AUTENTICAÇÃO BASEADA NA VERSÃO ESTÁVEL 2.3.0
+if($('btnLogin')){$('btnLogin').onclick=async()=>{
+    try{
+      if($('loginStatus'))$('loginStatus').textContent='Conectando...';
+      await signInWithPopup(auth,new GoogleAuthProvider());
+    }catch(e){
+      if($('loginStatus'))$('loginStatus').textContent='Erro: '+firebaseMessage(e);
+    }
+  };
+}
+
+if($('btnLogout'))$('btnLogout').onclick=()=>signOut(auth);
+
+onAuthStateChanged(auth,u=>{
+  user=u;
+  if(u){
+    if($('userInfo'))$('userInfo').textContent=u.displayName||u.email;
+    if($('loginScreen'))$('loginScreen').classList.add('hidden');
+    if($('appScreen'))$('appScreen').classList.remove('hidden');
+    connect().catch(showFirebaseError);
+  }else{
+    if($('appScreen'))$('appScreen').classList.add('hidden');
+    if($('loginScreen'))$('loginScreen').classList.remove('hidden');
+  }
+});
+
+if($('btnConectar'))$('btnConectar').onclick=()=>connect().catch(showFirebaseError);
 
 async function connect(){
   if(!user){alert('Faça login antes de conectar ao grupo.');return;}
@@ -65,6 +107,7 @@ async function connect(){
   unsubs.forEach(x=>x());unsubs=[];
   if($('groupStatus'))$('groupStatus').textContent='Conectando ao grupo...';
   await setDoc(gdoc(),{updatedAt:serverTimestamp(),appVersion:APP_VERSION,members:arrayUnion({uid:user.uid,name:user.displayName||user.email,email:user.email})},{merge:true});
+  
   const snapshotError=err=>showFirebaseError(err);
   unsubs.push(onSnapshot(gdoc(),s=>{config=s.data()||{};if($('budgetInput'))$('budgetInput').value=config.budget||'';if($('groupStatus'))$('groupStatus').textContent='✓ Grupo conectado: '+gid();renderConfig();dashboard()},snapshotError));
   unsubs.push(onSnapshot(col('itens'),s=>{items=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));render();renderConfig()},snapshotError));
@@ -72,12 +115,16 @@ async function connect(){
   unsubs.push(onSnapshot(col('historico'),s=>{history=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.closedAt?.seconds||0)-(a.closedAt?.seconds||0));renderHistory();dashboard()},snapshotError));
   unsubs.push(onSnapshot(col('favoritos'),s=>{favorites=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));renderFavorites()},snapshotError));
 }
+
 function cat(n){n=n.toLowerCase();if(/raç|petisco|areia/.test(n))return'Pets';if(/leite|queijo|iogurte/.test(n))return'Laticínios';if(/sabão|detergente|desinfetante/.test(n))return'Limpeza';if(/shampoo|sabonete|papel higi/.test(n))return'Higiene';if(/banana|maçã|fruta|verdura|tomate/.test(n))return'Hortifruti';if(/pão/.test(n))return'Padaria';return'Outros'}
+
 const periodLabel={imediata:'⚡ Imediata',proximo:'📅 Próximo período',especifico:'🎯 Específico'};
 const priorityLabel={alta:'🔴 Alta',normal:'🟡 Normal',baixa:'🔵 Baixa'};
 let editingItem=null;
+
 function updatePeriodInput(){if($('purchasePeriodInput')){const specific=$('purchasePeriodInput').value==='especifico';if($('specificPeriodInput'))$('specificPeriodInput').classList.toggle('hidden',!specific);}}
 if($('purchasePeriodInput'))$('purchasePeriodInput').onchange=updatePeriodInput;updatePeriodInput();
+
 async function addItem(name,qty=1,unit='un',category='Outros',extra={}){
   name=String(name||'').trim();
   if(!name){alert('Digite o nome do produto.');if($('itemInput'))$('itemInput').focus();return;}
@@ -91,14 +138,40 @@ async function addItem(name,qty=1,unit='un',category='Outros',extra={}){
     if($('itemInput'))$('itemInput').value='';if($('qtyInput'))$('qtyInput').value=1;if($('specificPeriodInput'))$('specificPeriodInput').value='';if($('dueDateInput'))$('dueDateInput').value='';if($('priorityInput'))$('priorityInput').value='normal';if($('purchasePeriodInput'))$('purchasePeriodInput').value='imediata';updatePeriodInput();if($('itemInput'))$('itemInput').focus();if($('groupStatus'))$('groupStatus').textContent='✓ Produto adicionado.';
   }catch(err){console.error('Erro ao adicionar produto:',err);alert(firebaseMessage(err));showFirebaseError(err);}finally{if(btn){btn.disabled=false;btn.textContent=old;}}
 }
+
 function addFromForm(){return addItem($('itemInput').value,$('qtyInput').value,$('unitInput').value,$('categoryInput').value,{purchasePeriod:$('purchasePeriodInput').value,specificPeriod:$('specificPeriodInput').value.trim(),priority:$('priorityInput').value,dueDate:$('dueDateInput').value,store:$('storeInput').value,assignee:$('assigneeInput').value.trim()});}
 if($('btnAddItem'))$('btnAddItem').onclick=addFromForm;if($('itemInput'))$('itemInput').addEventListener('keydown',async e=>{if(e.key==='Enter'){e.preventDefault();await addFromForm();}});
+
 if($('searchInput'))$('searchInput').oninput=render;if($('periodFilter'))$('periodFilter').onchange=render;if($('filterPending'))$('filterPending').onclick=()=>{currentFilter='pending';render()};if($('filterAll'))$('filterAll').onclick=()=>{currentFilter='all';render()};
+
 function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function periodText(i){let p=i.purchasePeriod||'imediata';return p==='especifico'&&i.specificPeriod?`🎯 ${esc(i.specificPeriod)}`:periodLabel[p]||periodLabel.imediata}
-function render(){let list=items.filter(i=>currentFilter==='all'||!i.bought),q=$('searchInput')?$('searchInput').value.toLowerCase():'',pf=$('periodFilter')?$('periodFilter').value:'all';if(q)list=list.filter(i=>i.name.toLowerCase().includes(q));if(pf!=='all')list=list.filter(i=>(i.purchasePeriod||'imediata')===pf);const order={imediata:0,proximo:1,especifico:2};list.sort((a,b)=>(order[a.purchasePeriod||'imediata']-order[b.purchasePeriod||'imediata'])||({'alta':0,'normal':1,'baixa':2}[a.priority||'normal']-({'alta':0,'normal':1,'baixa':2}[b.priority||'normal'])));let done=items.filter(i=>i.bought).length;if($('progressInfo'))$('progressInfo').textContent=`Comprados: ${done} / ${items.length}`;if($('listaCompras')){$('listaCompras').innerHTML=list.length?'':'<li class="text-center text-slate-400 py-8">Nenhum item encontrado.</li>';for(const i of list){let li=document.createElement('li');li.className='border rounded-xl p-3 flex gap-2 items-center '+(i.bought?'bg-slate-100 opacity-60':'bg-white');li.innerHTML=`<input type="checkbox" ${i.bought?'checked':''}><button class="edit flex-1 text-left"><div class="font-semibold ${i.bought?'line-through':''}">${esc(i.name)}</div><div class="text-xs text-slate-500">${i.qty} ${i.unit} • ${esc(i.category)} • ${periodText(i)} • ${priorityLabel[i.priority||'normal']||'🟡 Normal'}${i.dueDate?' • 📆 '+esc(i.dueDate):''}</div>${i.notes?`<div class="text-xs text-slate-400 mt-1">📝 ${esc(i.notes)}</div>`:''}</button><input type="number" class="price w-20 border rounded p-2" value="${i.price??''}" placeholder="R$"><button class="fav" title="Favorito">⭐</button><button class="del text-red-500" title="Excluir">🗑️</button>`;li.querySelector('input[type=checkbox]').onchange=e=>updateDoc(doc(col('itens'),i.id),{bought:e.target.checked,boughtAt:e.target.checked?serverTimestamp():null,lastPurchasedAt:e.target.checked?new Date().toISOString():i.lastPurchasedAt,updatedAt:serverTimestamp()}).catch(showFirebaseError);li.querySelector('.price').onchange=e=>updateDoc(doc(col('itens'),i.id),{price:e.target.value===''?null:Number(e.target.value),updatedAt:serverTimestamp()}).catch(showFirebaseError);li.querySelector('.del').onclick=()=>{if(confirm(`Excluir "${i.name}"?`))deleteDoc(doc(col('itens'),i.id)).catch(showFirebaseError)};li.querySelector('.fav').onclick=()=>addDoc(col('favoritos'),{name:i.name,qty:i.qty,unit:i.unit,category:i.category,recurrenceDays:i.recurrenceDays||null,purchasePeriod:i.purchasePeriod||'imediata',specificPeriod:i.specificPeriod||'',priority:i.priority||'normal',createdAt:serverTimestamp()}).catch(showFirebaseError);li.querySelector('.edit').onclick=()=>openEdit(i);$('listaCompras').appendChild(li)}}dashboard()}
 
-// MÓDULO FEIRA DO MÊS (COM VERIFICAÇÕES SEGURAS DE EXISTÊNCIA NO DOM)
+function render(){
+  let list=items.filter(i=>currentFilter==='all'||!i.bought),q=$('searchInput')?$('searchInput').value.toLowerCase():'',pf=$('periodFilter')?$('periodFilter').value:'all';
+  if(q)list=list.filter(i=>i.name.toLowerCase().includes(q));
+  if(pf!=='all')list=list.filter(i=>(i.purchasePeriod||'imediata')===pf);
+  const order={imediata:0,proximo:1,especifico:2};
+  list.sort((a,b)=>(order[a.purchasePeriod||'imediata']-order[b.purchasePeriod||'imediata'])||({'alta':0,'normal':1,'baixa':2}[a.priority||'normal']-({'alta':0,'normal':1,'baixa':2}[b.priority||'normal'])));
+  let done=items.filter(i=>i.bought).length;
+  if($('progressInfo'))$('progressInfo').textContent=`Comprados: ${done} / ${items.length}`;
+  if($('listaCompras')) {$('listaCompras').innerHTML=list.length?'':'<li class="text-center text-slate-400 py-8">Nenhum item encontrado.</li>';
+    for(const i of list){
+      let li=document.createElement('li');
+      li.className='border rounded-xl p-3 flex gap-2 items-center '+(i.bought?'bg-slate-100 opacity-60':'bg-white');
+      li.innerHTML=`<input type="checkbox" ${i.bought?'checked':''}><button class="edit flex-1 text-left"><div class="font-semibold ${i.bought?'line-through':''}">${esc(i.name)}</div><div class="text-xs text-slate-500">${i.qty} ${i.unit} • ${esc(i.category)} • ${periodText(i)} • ${priorityLabel[i.priority||'normal']||'🟡 Normal'}${i.dueDate?' • 📆 '+esc(i.dueDate):''}</div>${i.notes?`<div class="text-xs text-slate-400 mt-1">📝 ${esc(i.notes)}</div>`:''}</button><input type="number" class="price w-20 border rounded p-2" value="${i.price??''}" placeholder="R$"><button class="fav" title="Favorito">⭐</button><button class="del text-red-500" title="Excluir">🗑️</button>`;
+      li.querySelector('input[type=checkbox]').onchange=e=>updateDoc(doc(col('itens'),i.id),{bought:e.target.checked,boughtAt:e.target.checked?serverTimestamp():null,lastPurchasedAt:e.target.checked?new Date().toISOString():i.lastPurchasedAt,updatedAt:serverTimestamp()}).catch(showFirebaseError);
+      li.querySelector('.price').onchange=e=>updateDoc(doc(col('itens'),i.id),{price:e.target.value===''?null:Number(e.target.value),updatedAt:serverTimestamp()}).catch(showFirebaseError);
+      li.querySelector('.del').onclick=()=>{if(confirm(`Excluir "${i.name}"?`))deleteDoc(doc(col('itens'),i.id)).catch(showFirebaseError)};
+      li.querySelector('.fav').onclick=()=>addDoc(col('favoritos'),{name:i.name,qty:i.qty,unit:i.unit,category:i.category,recurrenceDays:i.recurrenceDays||null,purchasePeriod:i.purchasePeriod||'imediata',specificPeriod:i.specificPeriod||'',priority:i.priority||'normal',createdAt:serverTimestamp()}).catch(showFirebaseError);
+      li.querySelector('.edit').onclick=()=>openEdit(i);
+      $('listaCompras').appendChild(li)
+    }
+  }
+  dashboard();
+}
+
+// MÓDULO FEIRA DO MÊS
 if($('btnAddFeiraItem')){$('btnAddFeiraItem').onclick=async()=>{
     let name=$('feiraItemInput').value.trim();
     if(!name){alert('Digite o nome do produto.');$('feiraItemInput').focus();return;}
@@ -179,32 +252,78 @@ function renderFeira(){
 function openEdit(i){editingItem=i;$('editName').value=i.name\vert{}\vert{}'';$('editQty').value=i.qty||1;$('editUnit').value=i.unit\vert{}\vert{}'un';$('editCategory').value=i.category||'Outros';$('editPriority').value=i.priority\vert{}\vert{}'normal';$('editPurchasePeriod').value=i.purchasePeriod||'imediata';$('editSpecificPeriod').value=i.specificPeriod\vert{}\vert{}'';$('editDueDate').value=i.dueDate||'';$('editStore').value=i.store\vert{}\vert{}'';$('editAssignee').value=i.assignee||'';$('editPrice').value=i.price??'';$('editNotes').value=i.notes||'';updateEditPeriod();$('editModal').classList.remove('hidden');$('editName').focus();}
 function closeEdit(){$('editModal').classList.add('hidden');editingItem=null;}
 function updateEditPeriod(){if($('purchasePeriodInput')) {const specific=$('purchasePeriodInput').value==='especifico';if($('specificPeriodInput'))$('specificPeriodInput').classList.toggle('hidden',!specific);}}
-if($('editPurchasePeriod'))$('editPurchasePeriod').onchange=updateEditPeriod;if($('btnCloseEdit'))$('btnCloseEdit').onclick=closeEdit;if($('btnCancelEdit'))$('btnCancelEdit').onclick=closeEdit;if($('editModal'))$('editModal').onclick=e=>{if(e.target===$('editModal'))closeEdit()};
-if($('btnSaveEdit'))$('btnSaveEdit').onclick=async()=>{if(!editingItem)return;let name=$('editName').value.trim();if(!name)return alert('Informe o nome do produto.');const data={name,qty:Math.max(1,Number($('editQty').value)\vert{}\vert{}1),unit:$('editUnit').value,category:$('editCategory').value,priority:$('editPriority').value,purchasePeriod:$('editPurchasePeriod').value,specificPeriod:$('editSpecificPeriod').value.trim(),dueDate:$('editDueDate').value,store:$('editStore').value,assignee:$('editAssignee').value.trim(),price:$('editPrice').value===''?null:Number($('editPrice').value),notes:$('editNotes').value.trim(),updatedAt:serverTimestamp(),lastEditedBy:{uid:user.uid,email:user.email,name:user.displayName||user.email}};try{await updateDoc(doc(col('itens'),editingItem.id),data);if($('groupStatus'))$('groupStatus').textContent='✓ Item atualizado.';closeEdit();}catch(err){alert(firebaseMessage(err));showFirebaseError(err)}};
-if($('btnArchive'))$('btnArchive').onclick=async()=>{let bought=items.filter(i=>i.bought);if(!bought.length)return alert('Marque pelo menos um item como comprado.');let total=bought.reduce((s,i)=>s+(Number(i.price)||0)*Number(i.qty||1),0);await addDoc(col('historico'),{items:bought,total,closedAt:serverTimestamp(),closedBy:user.email,appVersion:APP_VERSION});let b=writeBatch(db);bought.forEach(i=>b.delete(doc(col('itens'),i.id)));await b.commit()};function money(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0)}function renderHistory(){if($('historico'))$('historico').innerHTML=history.length?history.map(h=>`<li class="border rounded-xl p-3"><b>Compra arquivada</b><div class="text-sm text-slate-500">${h.items?.length||0} itens • ${money(h.total)}</div></li>`).join(''):'<li class="text-slate-400">Nenhuma compra arquivada.</li>'}
-function dashboard(){let current=items.filter(i=>i.bought).reduce((s,i)=>s+(Number(i.price)||0)*Number(i.qty||1),0),feiraSpent=feiraItems.filter(i=>i.bought).reduce((s,i)=>s+(Number(i.price)||0)*Number(i.qty||1),0),past=history.reduce((s,h)=>s+(Number(h.total)||0),0),total=current+feiraSpent+past,budget=Number(config.budget)||0;if($('totalSpent'))$('totalSpent').textContent=money(total);if($('budgetView'))$('budgetView').textContent=money(budget);if($('balanceView'))$('balanceView').textContent=money(budget-total);let st={};items.forEach(i=>st[i.category]=(st[i.category]||0)+1);if($('categoryStats'))$('categoryStats').innerHTML=Object.entries(st).map(([k,v])=>`<div>${k}: <b>${v}</b></div>`).join('')||'Sem dados.'}
-if($('btnSaveBudget'))$('btnSaveBudget').onclick=()=>setDoc(gdoc(),{budget:Number($('budgetInput').value)||0,updatedAt:serverTimestamp(),appVersion:APP_VERSION},{merge:true});function renderFavorites(){if($('favoritesList'))$('favoritesList').innerHTML=favorites.length?favorites.map(f=>`<li class="border rounded-xl p-3 flex justify-between"><span><b>${esc(f.name)}</b><small class="block text-slate-500">${f.qty||1} ${f.unit||'un'} • ${f.category||'Outros'}</small></span><button data-id="${f.id}" class="useFav bg-indigo-600 text-white px-3 rounded-lg">Adicionar</button></li>`).join(''):'<li class="text-slate-400">Nenhum favorito.</li>';document.querySelectorAll('.useFav').forEach(b=>b.onclick=()=>{let f=favorites.find(x=>x.id===b.dataset.id);addItem(f.name,f.qty,f.unit,f.category,{recurrenceDays:f.recurrenceDays||null})})}if($('btnAddFavorite'))$('btnAddFavorite').onclick=async()=>{let name=prompt('Nome do produto favorito:');if(name)await addDoc(col('favoritos'),{name,qty:1,unit:'un',category:cat(name),recurrenceDays:null,createdAt:serverTimestamp()})};
-function renderConfig(){let m=config.members||[];if($('membersList'))$('membersList').innerHTML=m.length?m.map(x=>`<div>👤 ${esc(x.name||x.email)}</div>`).join(''):'Sem membros.';let rec=items.filter(i=>i.recurrenceDays);if($('recurringList'))$('recurringList').innerHTML=rec.length?rec.map(i=>`<li class="border rounded p-2 flex justify-between"><span>${esc(i.name)} — ${i.recurrenceDays} dias</span></li>`).join(''):'Adicione recorrência a partir de um favorito.'}
-if($('btnCheckRecurring'))$('btnCheckRecurring').onclick=()=>{let now=Date.now(),due=items.filter(i=>i.recurrenceDays&&i.lastPurchasedAt&&(now-new Date(i.lastPurchasedAt).getTime())>=Number(i.recurrenceDays)*86400000);if($('recurringSuggestions'))$('recurringSuggestions').innerHTML=due.length?'🔔 Pode ser hora de repor: '+due.map(i=>esc(i.name)).join(', '):'Nenhuma reposição identificada agora.'};
-if($('btnCreateInvite'))$('btnCreateInvite').onclick=async()=>{let code=Math.random().toString(36).slice(2,8).toUpperCase();await setDoc(doc(db,'convites',code),{groupId:gid(),createdBy:user.email,createdAt:serverTimestamp(),used:false});prompt('Código do convite:',code)};if($('btnJoinInvite'))$('btnJoinInvite').onclick=async()=>{let code=prompt('Informe o código do convite:');if(!code)return;let s=await getDoc(doc(db,'convites',code.trim().toUpperCase()));if(!s.exists()||s.data().used)return alert('Convite inválido ou já utilizado.');if($('groupId'))$('groupId').value=s.data().groupId;await setDoc(gdoc(),{members:arrayUnion({uid:user.uid,name:user.displayName||user.email,email:user.email}),updatedAt:serverTimestamp()},{merge:true});await updateDoc(doc(db,'convites',code.trim().toUpperCase()),{used:true,usedBy:user.email});connect()};
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(SR){let r=new SR();r.lang='pt-BR';r.onstart=()=>{if($('voiceStatus'))$('voiceStatus').textContent='Ouvindo...';};r.onend=()=>{if($('voiceStatus'))$('voiceStatus').textContent='“adicione 2 litros de leite”';};r.onresult=e=>{let t=e.results[0][0].transcript.toLowerCase().replace(/assistente|na lista( de compras)?/g,'').replace(/^(adicione|adicionar)\s*/,'').trim(),m=t.match(/^(\d+)\s+(.+)/);addItem(m?m[2]:t,m?m[1]:1);if($('voiceStatus'))$('voiceStatus').textContent='Adicionado: '+(m?m[2]:t)};if($('micBtn'))$('micBtn').onclick=()=>r.start()}else{if($('voiceStatus'))$('voiceStatus').textContent='Navegador sem suporte à voz.';}document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.className='tab px-4 py-3');b.className='tab px-4 py-3 font-semibold border-b-2 border-indigo-600';document.querySelectorAll('.tabPanel').forEach(p=>p.classList.add('hidden'));if($('tab-'+b.dataset.tab))$('tab-'+b.dataset.tab).classList.remove('hidden')});
+if($('editPurchasePeriod'))$('editPurchasePeriod').onchange=updateEditPeriod;
+if($('btnCloseEdit'))$('btnCloseEdit').onclick=closeEdit;
+if($('btnCancelEdit'))$('btnCancelEdit').onclick=closeEdit;
+if($('editModal')) $('editModal').onclick=e=>{if(e.target===$('editModal'))closeEdit()};
 
-// FUNÇÕES COMPLEMENTARES
+if($('btnSaveEdit')) {
+  $('btnSaveEdit').onclick=async()=>{if(!editingItem)return;let name=$('editName').value.trim();if(!name)return alert('Informe o nome do produto.');const data={name,qty:Math.max(1,Number($('editQty').value)\vert{}\vert{}1),unit:$('editUnit').value,category:$('editCategory').value,priority:$('editPriority').value,purchasePeriod:$('editPurchasePeriod').value,specificPeriod:$('editSpecificPeriod').value.trim(),dueDate:$('editDueDate').value,store:$('editStore').value,assignee:$('editAssignee').value.trim(),price:$('editPrice').value===''?null:Number($('editPrice').value),notes:$('editNotes').value.trim(),updatedAt:serverTimestamp(),lastEditedBy:{uid:user.uid,email:user.email,name:user.displayName||user.email}};try{await updateDoc(doc(col('itens'),editingItem.id),data);if($('groupStatus'))$('groupStatus').textContent='✓ Item atualizado.';closeEdit();}catch(err){alert(firebaseMessage(err));showFirebaseError(err)}};
+}
+
+if($('btnArchive')) {$('btnArchive').onclick=async()=>{let bought=items.filter(i=>i.bought);if(!bought.length)return alert('Marque pelo menos um item como comprado.');let total=bought.reduce((s,i)=>s+(Number(i.price)||0)*Number(i.qty||1),0);await addDoc(col('historico'),{items:bought,total,closedAt:serverTimestamp(),closedBy:user.email,appVersion:APP_VERSION});let b=writeBatch(db);bought.forEach(i=>b.delete(doc(col('itens'),i.id)));await b.commit()};
+}
+
+function money(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0)}
+function renderHistory(){if($('historico'))$('historico').innerHTML=history.length?history.map(h=>`<li class="border rounded-xl p-3"><b>Compra arquivada</b><div class="text-sm text-slate-500">${h.items?.length||0} itens • ${money(h.total)}</div></li>`).join(''):'<li class="text-slate-400">Nenhuma compra arquivada.</li>'}
+
+function dashboard(){
+  let current=items.filter(i=>i.bought).reduce((s,i)=>s+(Number(i.price)||0)*Number(i.qty||1),0),
+      feiraSpent=feiraItems.filter(i=>i.bought).reduce((s,i)=>s+(Number(i.price)||0)*Number(i.qty||1),0),
+      past=history.reduce((s,h)=>s+(Number(h.total)||0),0),
+      total=current+feiraSpent+past,
+      budget=Number(config.budget)||0;
+  if($('totalSpent'))$('totalSpent').textContent=money(total);
+  if($('budgetView'))$('budgetView').textContent=money(budget);
+  if($('balanceView'))$('balanceView').textContent=money(budget-total);
+  let st={};items.forEach(i=>st[i.category]=(st[i.category]||0)+1);
+  if($('categoryStats'))$('categoryStats').innerHTML=Object.entries(st).map(([k,v])=>`<div>${k}: <b>${v}</b></div>`).join('')||'Sem dados.';
+}
+
+if($('btnSaveBudget')) $('btnSaveBudget').onclick=()=>setDoc(gdoc(),{budget:Number($('budgetInput').value)||0,updatedAt:serverTimestamp(),appVersion:APP_VERSION},{merge:true});
+
+function renderFavorites(){if($('favoritesList'))$('favoritesList').innerHTML=favorites.length?favorites.map(f=>`<li class="border rounded-xl p-3 flex justify-between"><span><b>${esc(f.name)}</b><small class="block text-slate-500">${f.qty||1} ${f.unit||'un'} • ${f.category||'Outros'}</small></span><button data-id="${f.id}" class="useFav bg-indigo-600 text-white px-3 rounded-lg">Adicionar</button></li>`).join(''):'<li class="text-slate-400">Nenhum favorito.</li>';document.querySelectorAll('.useFav').forEach(b=>b.onclick=()=>{let f=favorites.find(x=>x.id===b.dataset.id);addItem(f.name,f.qty,f.unit,f.category,{recurrenceDays:f.recurrenceDays||null})})}
+if($('btnAddFavorite'))$('btnAddFavorite').onclick=async()=>{let name=prompt('Nome do produto favorito:');if(name)await addDoc(col('favoritos'),{name,qty:1,unit:'un',category:cat(name),recurrenceDays:null,createdAt:serverTimestamp()})};
+
+function renderConfig(){let m=config.members||[];if($('membersList'))$('membersList').innerHTML=m.length?m.map(x=>`<div>👤 ${esc(x.name||x.email)}</div>`).join(''):'Sem membros.';let rec=items.filter(i=>i.recurrenceDays);if($('recurringList'))$('recurringList').innerHTML=rec.length?rec.map(i=>`<li class="border rounded p-2 flex justify-between"><span>${esc(i.name)} — ${i.recurrenceDays} dias</span></li>`).join(''):'Adicione recorrência a partir de um favorito.'}
+
+if($('btnCheckRecurring'))$('btnCheckRecurring').onclick=()=>{let now=Date.now(),due=items.filter(i=>i.recurrenceDays&&i.lastPurchasedAt&&(now-new Date(i.lastPurchasedAt).getTime())>=Number(i.recurrenceDays)*86400000);if($('recurringSuggestions'))$('recurringSuggestions').innerHTML=due.length?'🔔 Pode ser hora de repor: '+due.map(i=>esc(i.name)).join(', '):'Nenhuma reposição identificada agora.'};
+
+if($('btnCreateInvite'))$('btnCreateInvite').onclick=async()=>{let code=Math.random().toString(36).slice(2,8).toUpperCase();await setDoc(doc(db,'convites',code),{groupId:gid(),createdBy:user.email,createdAt:serverTimestamp(),used:false});prompt('Código do convite:',code)};
+if($('btnJoinInvite'))$('btnJoinInvite').onclick=async()=>{let code=prompt('Informe o código do convite:');if(!code)return;let s=await getDoc(doc(db,'convites',code.trim().toUpperCase()));if(!s.exists()||s.data().used)return alert('Convite inválido ou já utilizado.');if($('groupId'))$('groupId').value=s.data().groupId;await setDoc(gdoc(),{members:arrayUnion({uid:user.uid,name:user.displayName||user.email,email:user.email}),updatedAt:serverTimestamp()},{merge:true});await updateDoc(doc(db,'convites',code.trim().toUpperCase()),{used:true,usedBy:user.email});connect()};
+
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){
+  let r=new SR();r.lang='pt-BR';
+  r.onstart=()=>{if($('voiceStatus'))$('voiceStatus').textContent='Ouvindo...';};
+  r.onend=()=>{if($('voiceStatus'))$('voiceStatus').textContent='“adicione 2 litros de leite”';};
+  r.onresult=e=>{let t=e.results[0][0].transcript.toLowerCase().replace(/assistente|na lista( de compras)?/g,'').replace(/^(adicione|adicionar)\s*/,'').trim(),m=t.match(/^(\d+)\s+(.+)/);addItem(m?m[2]:t,m?m[1]:1);if($('voiceStatus'))$('voiceStatus').textContent='Adicionado: '+(m?m[2]:t)};
+  if($('micBtn'))$('micBtn').onclick=()=>r.start();
+}else{
+  if($('voiceStatus'))$('voiceStatus').textContent='Navegador sem suporte à voz.';
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.className='tab px-4 py-3');b.className='tab px-4 py-3 font-semibold border-b-2 border-indigo-600';document.querySelectorAll('.tabPanel').forEach(p=>p.classList.add('hidden'));if($('tab-'+b.dataset.tab))$('tab-'+b.dataset.tab).classList.remove('hidden')});
+
 function dueInfo(i){if(!i.dueDate)return '';const d=new Date(i.dueDate+'T00:00:00');const today=new Date();today.setHours(0,0,0,0);const diff=Math.round((d-today)/86400000);if(diff<0)return '🔴 Atrasado';if(diff===0)return '🔔 Hoje';if(diff===1)return '⏰ Amanhã';return '📆 '+d.toLocaleDateString('pt-BR')}
 function refreshAssigneeFilter(){const sel=$('marketAssigneeFilter');if(!sel)return;const old=sel.value;const names=[...new Set(items.map(i=>(i.assignee||'').trim()).filter(Boolean))];sel.innerHTML='<option value="all">Todos os responsáveis</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');if([...sel.options].some(o=>o.value===old))sel.value=old;}
 function renderCalendar(){const box=$('calendarList');if(!box)return;const list=items.filter(i=>i.dueDate&&!i.bought).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));box.innerHTML=list.length?list.map(i=>`<div class="border rounded-xl p-3 bg-white"><b>${esc(i.name)}</b><div class="text-sm text-slate-500 mt-1">${dueInfo(i)} • ${periodText(i)}${i.store?' • 🏪 '+esc(i.store):''}${i.assignee?' • 👤 '+esc(i.assignee):''}</div></div>`).join(''):'<div class="text-slate-400">Nenhuma compra com data programada.</div>';}
 function renderMarket(){const listEl=$('marketList');if(!listEl)return;const store=$('marketStoreFilter')?$('marketStoreFilter').value:'all', assignee=$('marketAssigneeFilter')?$('marketAssigneeFilter').value:'all';const list=items.filter(i=>!i.bought&&(store==='all'||(i.store||'')===store)&&(assignee==='all'||(i.assignee||'')===assignee));const est=list.reduce((sum,i)=>sum+(Number(i.price)||0)*(Number(i.qty)||1),0);if($('marketSummary'))$('marketSummary').textContent=`${list.length} item(ns) • Estimativa registrada: ${money(est)}`;listEl.innerHTML=list.length?list.map(i=>`<li class="border rounded-xl p-3 flex items-center gap-3 bg-white"><input type="checkbox" data-id="${i.id}"><div class="flex-1"><b>${esc(i.name)}</b><div class="text-xs text-slate-500">${i.qty} ${esc(i.unit)}${i.store?' • 🏪 '+esc(i.store):''}${i.assignee?' • 👤 '+esc(i.assignee):''}${i.price!=null?' • '+money((Number(i.price)||0)*(Number(i.qty)||1)):''}</div></div><button class="marketEdit text-indigo-600" data-id="${i.id}">✏️</button></li>`).join(''):'<li class="text-slate-400">Nenhum item pendente para este filtro.</li>';listEl.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.onchange=e=>updateDoc(doc(col('itens'),e.target.dataset.id),{bought:e.target.checked,boughtAt:e.target.checked?serverTimestamp():null,updatedAt:serverTimestamp()}).catch(showFirebaseError));listEl.querySelectorAll('.marketEdit').forEach(b=>b.onclick=()=>openEdit(items.find(i=>i.id===b.dataset.id)));}
+
 async function enableNotifications(){if(!('Notification' in window))return alert('Este navegador não oferece notificações.');const permission=await Notification.requestPermission();if(permission==='granted'){alert('Lembretes ativados neste navegador.');checkDueNotifications(true);}else alert('Permissão de notificações não concedida.');}
 function checkDueNotifications(force=false){if(!('Notification' in window)||Notification.permission!=='granted')return;const key='nossas-compras-notified-'+gid()+'-'+new Date().toISOString().slice(0,10);if(!force&&localStorage.getItem(key))return;const due=items.filter(i=>!i.bought&&i.dueDate&&['🔔 Hoje','⏰ Amanhã','🔴 Atrasado'].includes(dueInfo(i)));if(due.length){new Notification('Nossas Compras',{body:`Você tem ${due.length} compra(s) próxima(s): ${due.slice(0,3).map(i=>i.name).join(', ')}`});localStorage.setItem(key,'1');}}
 
 const renderV22=render;
 render=function(){renderV22();refreshAssigneeFilter();renderCalendar();renderMarket();checkDueNotifications();}
-if($('marketStoreFilter'))$('marketStoreFilter').onchange=renderMarket;if($('marketAssigneeFilter'))$('marketAssigneeFilter').onchange=renderMarket;if($('btnNotify'))$('btnNotify').onclick=enableNotifications;
+if($('marketStoreFilter'))$('marketStoreFilter').onchange=renderMarket;
+if($('marketAssigneeFilter'))$('marketAssigneeFilter').onchange=renderMarket;
+if($('btnNotify'))$('btnNotify').onclick=enableNotifications;
 
 if($('editNotes'))$('editNotes').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')if($('btnSaveEdit'))$('btnSaveEdit').click();});
 
 function renderHistoryV23(){const el=$('historico');if(!el)return;el.innerHTML=history.length?history.map(h=>`<li class="border rounded-xl p-3 bg-white"><div class="flex justify-between gap-3"><div><b>Compra arquivada</b><div class="text-sm text-slate-500">${h.items?.length||0} itens • ${money(h.total)}</div></div><button class="restoreHistory border px-3 rounded-lg text-sm" data-id="${h.id}">↩️ Repetir</button></div></li>`).join(''):'<li class="text-slate-400">Nenhuma compra arquivada.</li>';el.querySelectorAll('.restoreHistory').forEach(b=>b.onclick=async()=>{const h=history.find(x=>x.id===b.dataset.id);if(!h?.items?.length)return;for(const old of h.items){const copy={...old};delete copy.id;delete copy.bought;delete copy.boughtAt;delete copy.createdAt;delete copy.updatedAt;await addDoc(col('itens'),{...copy,bought:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),restoredFromHistory:h.id});}alert('Itens da compra anterior foram adicionados novamente à lista.');});}
-const renderHistoryOld=renderHistory;renderHistory=function(){renderHistoryOld();renderHistoryV23();}
+const renderHistoryOld=renderHistory;
+renderHistory=function(){renderHistoryOld();renderHistoryV23();}
 
 setTimeout(()=>{if(user&&gid())setDoc(gdoc(),{appVersion:APP_VERSION,lastVersionUpdate:serverTimestamp()},{merge:true}).catch(()=>{});},1000);
 </script></body></html>
