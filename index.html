@@ -21,7 +21,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex justify-center items-center p-3 sm:p-6">
 
-  <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl flex flex-col justify-between overflow-hidden border border-slate-200 min-h-[580px]">
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl flex flex-col justify-between overflow-hidden border border-slate-200 min-h-[500px]">
     
     <!-- 1. TELA DE LOGIN -->
     <div id="loginScreen" class="flex-1 flex flex-col justify-center items-center p-8 text-center bg-white">
@@ -41,7 +41,7 @@
       <p id="loginStatus" class="text-xs text-slate-400 mt-6">Autenticação necessária para acessar.</p>
     </div>
 
-    <!-- 2. TELA PRINCIPAL -->
+    <!-- 2. TELA PRINCIPAL (Oculta até o login) -->
     <div id="appScreen" class="hidden flex-1 flex flex-col justify-between">
       
       <!-- Cabeçalho -->
@@ -57,29 +57,19 @@
         </button>
       </div>
 
-      <!-- Abas de Navegação -->
-      <div class="flex border-b border-indigo-100 bg-indigo-50">
-        <button id="tabDiaria" class="flex-1 py-3 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600 flex items-center justify-center gap-1">
-          <i class="fa-solid fa-bolt"></i> Lista Diária
-        </button>
-        <button id="tabFeira" class="flex-1 py-3 text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center justify-center gap-1">
-          <i class="fa-solid fa-cart-flatbed"></i> Feira do Mês
-        </button>
-      </div>
-
       <!-- Controle de Grupo/Casal -->
-      <div class="bg-indigo-50 p-3 border-b border-indigo-100 flex items-center justify-between gap-2 text-xs">
+      <div class="bg-indigo-50 p-4 border-b border-indigo-100 flex items-center justify-between gap-2">
         <div class="flex-1">
-          <label class="font-semibold text-indigo-900 block mb-0.5">CÓDIGO DO GRUPO / CASAL</label>
-          <input type="text" id="groupId" value="casal-oficial" class="w-full font-mono px-3 py-1 rounded-lg border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="Ex: casal-123">
+          <label class="text-xs font-semibold text-indigo-900 block mb-1">CÓDIGO DO GRUPO / CASAL</label>
+          <input type="text" id="groupId" value="casal-oficial" class="w-full text-sm font-mono px-3 py-1.5 rounded-lg border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ex: casal-123">
         </div>
-        <button id="btnConectar" class="mt-3.5 bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
+        <button id="btnConectar" class="mt-4 bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-semibold hover:bg-indigo-700">
           Conectar
         </button>
       </div>
 
-      <!-- CONTEÚDO DA ABA 1: LISTA DIÁRIA -->
-      <div id="viewDiaria" class="p-4 border-b border-slate-100 bg-slate-50">
+      <!-- Entrada de Itens e Voz -->
+      <div class="p-4 border-b border-slate-100 bg-slate-50">
         <div class="flex gap-2 mb-2">
           <input type="text" id="itemInput" placeholder="Ex: Sabão em pó, remédio..." class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
           <button id="btnAddItem" class="bg-indigo-600 text-white px-4 py-3 rounded-xl hover:bg-indigo-700 font-semibold transition">
@@ -101,37 +91,8 @@
         </div>
       </div>
 
-      <!-- CONTEÚDO DA ABA 2: FEIRA DO MÊS -->
-      <div id="viewFeira" class="hidden p-4 border-b border-slate-100 bg-slate-50 space-y-2">
-        <input type="text" id="feiraItemInput" placeholder="Item (ex: Arroz 5kg, Azeite...)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-        
-        <div class="flex gap-2">
-          <!-- Campo Onde / Mercado -->
-          <select id="feiraMercadoSelect" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-700">
-            <option value="Assaí">Assaí</option>
-            <option value="Atacadão">Atacadão</option>
-            <option value="Sams">Sams</option>
-            <option value="Carrefour">Carrefour</option>
-            <option value="Recibom">Recibom</option>
-            <option value="Atacarejo">Atacarejo</option>
-            <option value="Rende Mais">Rende Mais</option>
-            <option value="Ceasa">Ceasa</option>
-            <option value="Verd Frut">Verd Frut</option>
-            <option value="Quitanda">Quitanda</option>
-            <option value="Outros">Outros</option>
-          </select>
-
-          <!-- Campo Bairro -->
-          <input type="text" id="feiraBairroInput" placeholder="Bairro (ex: Boa Viagem)" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-        </div>
-
-        <button id="btnAddFeiraItem" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl hover:bg-emerald-700 font-semibold text-xs transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-cart-plus"></i> Adicionar à Feira do Mês
-        </button>
-      </div>
-
       <!-- Lista de Itens -->
-      <div class="flex-1 p-4 overflow-y-auto max-h-[300px]">
+      <div class="flex-1 p-4 overflow-y-auto max-h-[350px]">
         <ul id="listaCompras" class="space-y-2">
           <li class="text-center py-8 text-slate-400 text-sm">Carregando lista...</li>
         </ul>
@@ -139,7 +100,7 @@
 
       <!-- Rodapé -->
       <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
-        <p class="text-[11px] text-slate-400">NossasCompras • Módulo Feira do Mês</p>
+        <p class="text-[11px] text-slate-400">Área compartilhada • Sincronização em tempo real</p>
       </div>
 
     </div>
@@ -168,33 +129,8 @@
 
     let usuarioAtual = null;
     let unsubscribeSnapshot = null;
-    let abaAtiva = "diaria"; // 'diaria' ou 'feira'
 
-    // Troca de Abas
-    const tabDiaria = document.getElementById("tabDiaria");
-    const tabFeira = document.getElementById("tabFeira");
-    const viewDiaria = document.getElementById("viewDiaria");
-    const viewFeira = document.getElementById("viewFeira");
-
-    tabDiaria.addEventListener("click", () => {
-      abaAtiva = "diaria";
-      tabDiaria.className = "flex-1 py-3 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600 flex items-center justify-center gap-1";
-      tabFeira.className = "flex-1 py-3 text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center justify-center gap-1";
-      viewDiaria.classList.remove("hidden");
-      viewFeira.classList.add("hidden");
-      conectarGrupo();
-    });
-
-    tabFeira.addEventListener("click", () => {
-      abaAtiva = "feira";
-      tabFeira.className = "flex-1 py-3 text-xs font-bold text-emerald-600 border-b-2 border-emerald-600 flex items-center justify-center gap-1";
-      tabDiaria.className = "flex-1 py-3 text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center justify-center gap-1";
-      viewFeira.classList.remove("hidden");
-      viewDiaria.classList.add("hidden");
-      conectarGrupo();
-    });
-
-    // Login com Google
+    // Login com Google vinculado diretamente via EventListener
     document.getElementById("btnLogin").addEventListener("click", () => {
       const provider = new GoogleAuthProvider();
       const statusEl = document.getElementById("loginStatus");
@@ -213,16 +149,21 @@
       signOut(auth);
     });
 
-    // Event Listeners dos botões
-    document.getElementById("btnConectar").addEventListener("click", () => conectarGrupo());
-    document.getElementById("btnAddItem").addEventListener("click", () => adicionarItemManual());
+    // Event Listener para conectar grupo
+    document.getElementById("btnConectar").addEventListener("click", () => {
+      conectarGrupo();
+    });
+
+    // Event Listener para adicionar item
+    document.getElementById("btnAddItem").addEventListener("click", () => {
+      adicionarItemManual();
+    });
+
     document.getElementById("itemInput").addEventListener("keypress", (e) => {
       if (e.key === "Enter") adicionarItemManual();
     });
 
-    document.getElementById("btnAddFeiraItem").addEventListener("click", () => adicionarItemFeira());
-
-    // Monitor de autenticação
+    // Monitor de estado do usuário
     onAuthStateChanged(auth, (user) => {
       const loginScreen = document.getElementById("loginScreen");
       const appScreen = document.getElementById("appScreen");
@@ -244,7 +185,7 @@
       }
     });
 
-    // Conectar ao Firestore
+    // Conectar/Sincronizar com o Firestore
     function conectarGrupo() {
       const grupoId = document.getElementById("groupId").value.trim();
       if (!grupoId) return alert("Digite o código do grupo.");
@@ -255,15 +196,14 @@
 
       unsubscribeSnapshot = onSnapshot(groupRef, (docSnap) => {
         if (docSnap.exists()) {
-          const dados = docSnap.data();
-          const itens = abaAtiva === "diaria" ? (dados.itens || []) : (dados.itensFeira || []);
-          renderizarLista(itens, grupoId);
+          renderizarLista(docSnap.data().itens || [], grupoId);
         } else {
-          setDoc(groupRef, { itens: [], itensFeira: [] });
+          setDoc(groupRef, { itens: [] });
           renderizarLista([], grupoId);
         }
       }, (error) => {
         console.error("Erro no Firestore:", error);
+        alert("Erro de permissão no Firestore. Verifique se ativou o banco e as regras no console.");
       });
     }
 
@@ -272,34 +212,21 @@
       listaEl.innerHTML = "";
 
       if (itens.length === 0) {
-        listaEl.innerHTML = `<li class="text-center py-8 text-slate-400 text-sm">Nenhum item na ${abaAtiva === 'diaria' ? 'lista diária' : 'feira do mês'}.</li>`;
+        listaEl.innerHTML = `<li class="text-center py-8 text-slate-400 text-sm">A lista está vazia! Adicione itens acima ou use o microfone.</li>`;
         return;
       }
 
       itens.forEach((item, index) => {
         const li = document.createElement("li");
-        li.className = `flex flex-col p-3 rounded-xl border transition ${item.comprado ? 'bg-slate-100 border-slate-200 text-slate-400 line-through' : 'bg-white border-slate-200 text-slate-700 shadow-sm'}`;
+        li.className = `flex items-center justify-between p-3 rounded-xl border transition ${item.comprado ? 'bg-slate-100 border-slate-200 text-slate-400 line-through' : 'bg-white border-slate-200 text-slate-700 shadow-sm'}`;
         
-        let metaHtml = "";
-        if (abaAtiva === "feira" && (item.mercado || item.bairro)) {
-          metaHtml = `
-            <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-1">
-              ${item.mercado ? `<span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-medium"><i class="fa-solid fa-store text-[10px]"></i> ${item.mercado}</span>` : ''}
-              ${item.bairro ? `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded"><i class="fa-solid fa-location-dot text-[10px]"></i> ${item.bairro}</span>` : ''}
-            </div>
-          `;
-        }
-
         li.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="item-text flex-1 cursor-pointer font-medium text-sm">
-              ${item.nome}
-            </span>
-            <button class="btn-del text-slate-400 hover:text-red-500 p-1 text-xs">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-          ${metaHtml}
+          <span class="item-text flex-1 cursor-pointer font-medium text-sm">
+            ${item.nome}
+          </span>
+          <button class="btn-del text-slate-400 hover:text-red-500 p-1 text-xs">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         `;
 
         li.querySelector(".item-text").addEventListener("click", () => {
@@ -314,7 +241,6 @@
       });
     }
 
-    // Adicionar Item Diário
     async function adicionarItemBD(nomeItem) {
       if (!nomeItem || !usuarioAtual) return;
       const grupoId = document.getElementById("groupId").value.trim();
@@ -326,46 +252,9 @@
         });
       } catch (err) {
         await setDoc(groupRef, {
-          itens: [{ nome: nomeItem, comprado: false, criadoEm: new Date().toISOString(), adicionadoPor: usuarioAtual.email }],
-          itensFeira: []
+          itens: [{ nome: nomeItem, comprado: false, criadoEm: new Date().toISOString(), adicionadoPor: usuarioAtual.email }]
         }, { merge: true });
       }
-    }
-
-    // Adicionar Item da Feira do Mês
-    async function adicionarItemFeira() {
-      const input = document.getElementById("feiraItemInput");
-      const mercadoSelect = document.getElementById("feiraMercadoSelect");
-      const bairroInput = document.getElementById("feiraBairroInput");
-
-      const nomeItem = input.value.trim();
-      if (!nomeItem || !usuarioAtual) return;
-
-      const grupoId = document.getElementById("groupId").value.trim();
-      const groupRef = doc(db, "grupos_compras", grupoId);
-
-      const novoItem = {
-        nome: nomeItem,
-        mercado: mercadoSelect.value,
-        bairro: bairroInput.value.trim(),
-        comprado: false,
-        criadoEm: new Date().toISOString(),
-        adicionadoPor: usuarioAtual.email
-      };
-
-      try {
-        await updateDoc(groupRef, {
-          itensFeira: arrayUnion(novoItem)
-        });
-      } catch (err) {
-        await setDoc(groupRef, {
-          itens: [],
-          itensFeira: [novoItem]
-        }, { merge: true });
-      }
-
-      input.value = "";
-      bairroInput.value = "";
     }
 
     function adicionarItemManual() {
@@ -378,11 +267,10 @@
       const groupRef = doc(db, "grupos_compras", grupoId);
       const docSnap = await getDoc(groupRef);
       if (docSnap.exists()) {
-        const campo = abaAtiva === "diaria" ? "itens" : "itensFeira";
-        const itens = [...(docSnap.data()[campo] || [])];
+        const itens = [...docSnap.data().itens];
         if (itens[index]) {
           itens[index].comprado = !itens[index].comprado;
-          await updateDoc(groupRef, { [campo]: itens });
+          await updateDoc(groupRef, { itens });
         }
       }
     }
@@ -391,11 +279,10 @@
       const groupRef = doc(db, "grupos_compras", grupoId);
       const docSnap = await getDoc(groupRef);
       if (docSnap.exists()) {
-        const campo = abaAtiva === "diaria" ? "itens" : "itensFeira";
-        const itens = docSnap.data()[campo] || [];
+        const itens = docSnap.data().itens || [];
         const itemParaRemover = itens[index];
         if (itemParaRemover) {
-          await updateDoc(groupRef, { [campo]: arrayRemove(itemParaRemover) });
+          await updateDoc(groupRef, { itens: arrayRemove(itemParaRemover) });
         }
       }
     }
